@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>道友 · Life Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Sora:wght@200;300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #f9f7f3;
+  --surface: #ffffff;
+  --surface2: #f3f0ea;
+  --border: #e5e0d6;
+  --ink: #1a1712;
+  --ink2: #5c564d;
+  --ink3: #a09888;
+  --warm: #8b6914;
+  --warm-bg: #fdf6e3;
+  --warm-light: #f5e6c8;
+  --blue: #1e40af;
+  --blue-bg: #eff6ff;
+  --green: #166534;
+  --green-bg: #f0fdf4;
+  --red: #991b1b;
+  --red-bg: #fef2f2;
+  --purple: #5b21b6;
+  --purple-bg: #f5f3ff;
+  --amber: #92400e;
+  --amber-bg: #fffbeb;
+  --r: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); font-family:'Sora',sans-serif; color:var(--ink); min-height:100vh; }
+
+.page { max-width:820px; margin:0 auto; padding:20px 16px 80px; }
+
+.header { text-align:center; margin-bottom:28px; padding:24px 0; }
+.header .kanji { font-family:'Cormorant Garamond',serif; font-size:2.6rem; font-weight:300; color:var(--warm); letter-spacing:0.4em; opacity:0.55; }
+.header h1 { font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:400; color:var(--ink2); letter-spacing:0.2em; margin-top:4px; }
+.header .date { font-size:0.7rem; color:var(--ink3); margin-top:8px; letter-spacing:0.15em; }
+.header .line { width:80px; height:1px; background:linear-gradient(90deg, transparent, var(--warm), transparent); margin:10px auto 0; }
+
+/* Tabs */
+.tabs { display:flex; gap:3px; margin-bottom:20px; background:var(--surface); border-radius:var(--r); padding:4px; border:1px solid var(--border); }
+.tab-btn { flex:1; padding:10px 6px; border:none; background:transparent; font-family:inherit; font-size:0.74rem; font-weight:400; cursor:pointer; color:var(--ink3); transition:all 0.3s; border-radius:8px; }
+.tab-btn.active { color:var(--warm); background:var(--warm-bg); font-weight:600; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* Cards */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:14px; box-shadow:var(--shadow); }
+.card-title { display:flex; align-items:center; gap:10px; margin-bottom:14px; font-size:0.88rem; font-weight:600; }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:10px; margin-bottom:16px; }
+.stat { text-align:center; padding:16px 10px; border-radius:var(--r); background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow); }
+.stat .sv { font-size:1.5rem; font-weight:700; }
+.stat .sl { font-size:0.65rem; color:var(--ink3); margin-top:4px; letter-spacing:0.05em; text-transform:uppercase; }
+
+/* Form */
+.form-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:12px; }
+.form-group { display:flex; flex-direction:column; gap:4px; }
+.form-group label { font-size:0.68rem; font-weight:500; color:var(--ink3); text-transform:uppercase; letter-spacing:0.06em; }
+.form-group input, .form-group select, .form-group textarea { padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.82rem; font-family:inherit; background:var(--surface); color:var(--ink); }
+.form-group input:focus, .form-group select:focus { outline:none; border-color:var(--warm); box-shadow:0 0 0 2px rgba(139,105,20,0.1); }
+
+.btn { padding:8px 16px; border:1px solid var(--border); border-radius:8px; font-size:0.78rem; font-weight:500; cursor:pointer; background:var(--surface); color:var(--ink); font-family:inherit; transition:all 0.2s; }
+.btn:hover { border-color:var(--warm); color:var(--warm); }
+.btn-primary { background:var(--warm); color:#fff; border-color:var(--warm); }
+.btn-primary:hover { background:#7a5c11; }
+.btn-sm { padding:5px 10px; font-size:0.7rem; }
+.btn-danger { border-color:rgba(153,27,27,0.2); color:var(--red); }
+
+/* Bill row */
+.bill-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:10px; margin-bottom:8px; background:var(--surface); transition:all 0.2s; }
+.bill-row:hover { border-color:var(--warm); }
+.bill-name { font-size:0.82rem; font-weight:600; flex:1; }
+.bill-amount { font-size:0.85rem; font-weight:700; min-width:75px; text-align:right; }
+.bill-cycle { font-size:0.68rem; padding:3px 8px; border-radius:999px; font-weight:600; }
+.bill-due { font-size:0.7rem; color:var(--ink3); min-width:80px; }
+
+/* Expense row */
+.expense-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--border); font-size:0.8rem; }
+.expense-row:last-child { border-bottom:none; }
+.expense-cat { font-size:0.65rem; padding:2px 8px; border-radius:999px; font-weight:600; }
+.expense-amount { font-weight:700; min-width:70px; text-align:right; }
+
+/* Goal */
+.goal-card { padding:16px; border:1px solid var(--border); border-radius:10px; margin-bottom:10px; background:var(--surface); }
+.goal-title { font-size:0.88rem; font-weight:600; margin-bottom:6px; }
+.goal-desc { font-size:0.75rem; color:var(--ink2); line-height:1.6; margin-bottom:8px; }
+.goal-bar { height:8px; border-radius:4px; background:var(--surface2); overflow:hidden; }
+.goal-fill { height:100%; border-radius:4px; transition:width 0.4s; }
+.goal-meta { display:flex; justify-content:space-between; margin-top:6px; font-size:0.7rem; color:var(--ink3); }
+
+/* Category colors */
+.cat-food { background:var(--amber-bg); color:var(--amber); }
+.cat-transport { background:var(--blue-bg); color:var(--blue); }
+.cat-shopping { background:var(--purple-bg); color:var(--purple); }
+.cat-entertainment { background:var(--green-bg); color:var(--green); }
+.cat-health { background:var(--red-bg); color:var(--red); }
+.cat-bills { background:var(--warm-bg); color:var(--warm); }
+.cat-other { background:var(--surface2); color:var(--ink3); }
+
+/* Toast */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:10px; font-size:0.82rem; font-weight:500; z-index:200; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.toast.ok { background:var(--green); color:#fff; }
+.toast.err { background:var(--red); color:#fff; }
+
+@media(max-width:600px) {
+  .form-row { grid-template-columns:1fr 1fr; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .bill-row { flex-wrap:wrap; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="kanji">生 活</div>
+    <h1>Life Manager</h1>
+    <div class="line"></div>
+    <div class="date" id="dateDisplay"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview')">🏠 Overview</button>
+    <button class="tab-btn" onclick="switchTab('bills')">📋 Bills</button>
+    <button class="tab-btn" onclick="switchTab('expenses')">💸 Expenses</button>
+    <button class="tab-btn" onclick="switchTab('goals')">🎯 Goals</button>
+  </div>
+
+  <!-- ═══ OVERVIEW ═══ -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="stats-row" id="overviewStats"></div>
+
+    <!-- Upcoming bills -->
+    <div class="card">
+      <div class="card-title">⚠️ Upcoming Bills</div>
+      <div id="upcomingBills"></div>
+    </div>
+
+    <!-- This month spending -->
+    <div class="card">
+      <div class="card-title">📊 This Month Spending by Category</div>
+      <div id="monthlyBreakdown"></div>
+    </div>
+  </div>
+
+  <!-- ═══ BILLS & SUBSCRIPTIONS ═══ -->
+  <div class="tab-panel" id="tab-bills">
+    <div class="card">
+      <div class="card-title">📋 Add Bill / Subscription</div>
+      <div class="form-row" style="grid-template-columns:1fr auto auto auto;">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="billName" placeholder="e.g. Phone bill, Netflix, Gym">
+        </div>
+        <div class="form-group">
+          <label>Amount (SGD)</label>
+          <input type="number" id="billAmount" step="0.01" placeholder="50.00">
+        </div>
+        <div class="form-group">
+          <label>Cycle</label>
+          <select id="billCycle">
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Yearly">Yearly</option>
+            <option value="One-time">One-time</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="number" id="billDue" min="1" max="31" placeholder="15" style="width:60px;">
+        </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr 1fr;">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="billCategory">
+            <option value="Phone">📱 Phone / Internet</option>
+            <option value="Insurance">🛡️ Insurance</option>
+            <option value="Subscription">📺 Subscription</option>
+            <option value="Gym">💪 Gym / Fitness</option>
+            <option value="Rent">🏠 Rent / Housing</option>
+            <option value="Utilities">💡 Utilities</option>
+            <option value="Transport">🚗 Transport</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="billNotes" placeholder="Auto-deduct, manual pay...">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addBill()" style="width:100%;padding:10px;">Add Bill</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 All Bills & Subscriptions</div>
+      <div id="billsList"></div>
+      <div id="billsTotal" style="margin-top:12px;padding-top:12px;border-top:2px solid var(--ink);display:flex;justify-content:space-between;font-weight:700;font-size:0.9rem;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ EXPENSES ═══ -->
+  <div class="tab-panel" id="tab-expenses">
+    <div class="card">
+      <div class="card-title">💸 Log Expense</div>
+      <div class="form-row" style="grid-template-columns:auto 1fr auto auto;">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="expDate">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="expDesc" placeholder="e.g. Lunch at hawker, Grab ride">
+        </div>
+        <div class="form-group">
+          <label>Amount (SGD)</label>
+          <input type="number" id="expAmount" step="0.01" placeholder="12.50">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="expCategory">
+            <option value="Food">🍜 Food & Drinks</option>
+            <option value="Transport">🚗 Transport</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="Health">💊 Health</option>
+            <option value="Bills">📋 Bills</option>
+            <option value="Other">📌 Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addExpense()" style="width:100%;padding:10px;">Log Expense</button>
+    </div>
+
+    <!-- Month filter -->
+    <div class="card" style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Month</label>
+          <input type="month" id="expMonth" onchange="renderExpenses()">
+        </div>
+        <div style="margin-left:auto;font-size:0.85rem;font-weight:700;color:var(--red);" id="expMonthTotal"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📜 Expense History</div>
+      <div id="expenseList"></div>
+    </div>
+  </div>
+
+  <!-- ═══ GOALS & BUCKET LIST ═══ -->
+  <div class="tab-panel" id="tab-goals">
+    <div class="card">
+      <div class="card-title">🎯 Add Goal</div>
+      <div class="form-row" style="grid-template-columns:1fr auto;">
+        <div class="form-group">
+          <label>Goal</label>
+          <input type="text" id="goalTitle" placeholder="e.g. Buy a condo, Visit Japan, Learn piano">
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="goalType">
+            <option value="Life Goal">🎯 Life Goal</option>
+            <option value="Bucket List">🌍 Bucket List</option>
+            <option value="This Year">📅 This Year</option>
+            <option value="This Month">🗓️ This Month</option>
+            <option value="Financial">💰 Financial</option>
+            <option value="Experience">✨ Experience</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="grid-template-columns:1fr auto auto;">
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input type="text" id="goalDesc" placeholder="More details, why this matters...">
+        </div>
+        <div class="form-group">
+          <label>Target Date</label>
+          <input type="date" id="goalDate">
+        </div>
+        <div class="form-group">
+          <label>Progress %</label>
+          <input type="number" id="goalProgress" min="0" max="100" value="0" step="5" style="width:70px;">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addGoal()" style="width:100%;padding:10px;">Add Goal</button>
+    </div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-sm" onclick="filterGoals('All')" id="gf-All" style="font-weight:600;background:var(--warm-bg);color:var(--warm);border-color:var(--warm-light);">All</button>
+      <button class="btn btn-sm" onclick="filterGoals('Life Goal')" id="gf-Life Goal">Life Goal</button>
+      <button class="btn btn-sm" onclick="filterGoals('Bucket List')" id="gf-Bucket List">Bucket List</button>
+      <button class="btn btn-sm" onclick="filterGoals('This Year')" id="gf-This Year">This Year</button>
+      <button class="btn btn-sm" onclick="filterGoals('This Month')" id="gf-This Month">This Month</button>
+      <button class="btn btn-sm" onclick="filterGoals('Financial')" id="gf-Financial">Financial</button>
+      <button class="btn btn-sm" onclick="filterGoals('Completed')" id="gf-Completed">Completed ✅</button>
+    </div>
+
+    <div id="goalsList"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let DATA = {
+  bills: [],
+  expenses: [],
+  goals: []
+};
+
+let goalFilter = 'All';
+
+(function init() {
+  document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-SG', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('expDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('expMonth').value = new Date().toISOString().slice(0,7);
+
+  try { const saved = JSON.parse(localStorage.getItem('daoyou_life')); if (saved) DATA = {...DATA, ...saved}; } catch(e) {}
+
+  renderAll();
+})();
+
+function save() { localStorage.setItem('daoyou_life', JSON.stringify(DATA)); renderAll(); }
+function formatDate(d) { if (!d) return ''; const p = String(d).split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d; }
+
+function renderAll() {
+  renderOverview();
+  renderBills();
+  renderExpenses();
+  renderGoals();
+}
+
+// ═══════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════
+function renderOverview() {
+  const now = new Date();
+  const thisMonth = now.toISOString().slice(0,7);
+
+  // Monthly bills total
+  const monthlyBills = DATA.bills.reduce((s,b) => {
+    if (b.cycle === 'Monthly') return s + (b.amount||0);
+    if (b.cycle === 'Quarterly') return s + (b.amount||0)/3;
+    if (b.cycle === 'Yearly') return s + (b.amount||0)/12;
+    return s;
+  }, 0);
+
+  // This month expenses
+  const monthExpenses = DATA.expenses.filter(e => e.date && e.date.startsWith(thisMonth)).reduce((s,e) => s + (e.amount||0), 0);
+
+  // Today expenses
+  const today = now.toISOString().slice(0,10);
+  const todayExpenses = DATA.expenses.filter(e => e.date === today).reduce((s,e) => s + (e.amount||0), 0);
+
+  // Goals
+  const activeGoals = DATA.goals.filter(g => g.progress < 100).length;
+  const completedGoals = DATA.goals.filter(g => g.progress >= 100).length;
+
+  document.getElementById('overviewStats').innerHTML = `
+    <div class="stat"><div class="sv" style="color:var(--warm);">$${monthlyBills.toFixed(0)}</div><div class="sl">Monthly Bills</div></div>
+    <div class="stat"><div class="sv" style="color:var(--red);">$${monthExpenses.toFixed(0)}</div><div class="sl">Spent This Month</div></div>
+    <div class="stat"><div class="sv" style="color:${todayExpenses > 50 ? 'var(--red)' : 'var(--green)'};">$${todayExpenses.toFixed(0)}</div><div class="sl">Spent Today</div></div>
+    <div class="stat"><div class="sv" style="color:var(--blue);">${activeGoals}</div><div class="sl">Active Goals</div></div>
+    <div class="stat"><div class="sv" style="color:var(--green);">${completedGoals}</div><div class="sl">Completed</div></div>
+  `;
+
+  // Upcoming bills (next 7 days)
+  const currentDay = now.getDate();
+  const upcoming = DATA.bills.filter(b => {
+    if (b.cycle === 'One-time') return false;
+    const due = b.dueDay || 1;
+    const diff = due - currentDay;
+    return (diff >= 0 && diff <= 7) || (diff < 0 && diff > -3);
+  }).sort((a,b) => (a.dueDay||1) - (b.dueDay||1));
+
+  const upEl = document.getElementById('upcomingBills');
+  if (upcoming.length === 0) {
+    upEl.innerHTML = '<div style="text-align:center;color:var(--ink3);padding:12px;font-size:0.8rem;">No upcoming bills this week 👍</div>';
+  } else {
+    upEl.innerHTML = upcoming.map(b => {
+      const overdue = (b.dueDay||1) < currentDay;
+      return `<div class="bill-row" style="${overdue?'border-color:var(--red);background:var(--red-bg);':''}">
+        <span class="bill-name">${b.name}</span>
+        <span style="font-size:0.72rem;color:var(--ink3);">${b.category}</span>
+        <span class="bill-amount" style="color:${overdue?'var(--red)':'var(--warm)'};">$${(b.amount||0).toFixed(2)}</span>
+        <span style="font-size:0.7rem;color:${overdue?'var(--red)':'var(--ink3)'};">${overdue?'OVERDUE':'Due'} ${b.dueDay||'—'}th</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Monthly breakdown by category
+  const monthExps = DATA.expenses.filter(e => e.date && e.date.startsWith(thisMonth));
+  const catTotals = {};
+  monthExps.forEach(e => { catTotals[e.category] = (catTotals[e.category]||0) + (e.amount||0); });
+  const catColors = { Food:'var(--amber)', Transport:'var(--blue)', Shopping:'var(--purple)', Entertainment:'var(--green)', Health:'var(--red)', Bills:'var(--warm)', Other:'var(--ink3)' };
+  const catBgs = { Food:'var(--amber-bg)', Transport:'var(--blue-bg)', Shopping:'var(--purple-bg)', Entertainment:'var(--green-bg)', Health:'var(--red-bg)', Bills:'var(--warm-bg)', Other:'var(--surface2)' };
+
+  const mbEl = document.getElementById('monthlyBreakdown');
+  const cats = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
+  if (cats.length === 0) {
+    mbEl.innerHTML = '<div style="text-align:center;color:var(--ink3);padding:12px;font-size:0.8rem;">No expenses this month yet</div>';
+  } else {
+    const maxCat = cats[0][1];
+    mbEl.innerHTML = cats.map(([cat, total]) => {
+      const pct = Math.round((total / maxCat) * 100);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+        <span style="font-size:0.78rem;min-width:100px;font-weight:500;">${cat}</span>
+        <div style="flex:1;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;">
+          <div style="width:${pct}%;height:100%;border-radius:4px;background:${catColors[cat]||'var(--ink3)'};"></div>
+        </div>
+        <span style="font-size:0.82rem;font-weight:700;min-width:65px;text-align:right;color:${catColors[cat]||'var(--ink3)'};">$${total.toFixed(0)}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════════
+// BILLS
+// ═══════════════════════════════════════
+function addBill() {
+  const name = document.getElementById('billName').value.trim();
+  const amount = parseFloat(document.getElementById('billAmount').value) || 0;
+  if (!name) { toast('Enter bill name', 'err'); return; }
+  DATA.bills.push({
+    name,
+    amount,
+    cycle: document.getElementById('billCycle').value,
+    dueDay: parseInt(document.getElementById('billDue').value) || 1,
+    category: document.getElementById('billCategory').value,
+    notes: document.getElementById('billNotes').value,
+    active: true,
+    createdAt: new Date().toISOString()
+  });
+  document.getElementById('billName').value = '';
+  document.getElementById('billAmount').value = '';
+  document.getElementById('billNotes').value = '';
+  save();
+  toast('📋 Bill added', 'ok');
+}
+
+function renderBills() {
+  const el = document.getElementById('billsList');
+  if (DATA.bills.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--ink3);padding:20px;">No bills tracked yet</div>';
+    document.getElementById('billsTotal').innerHTML = '';
+    return;
+  }
+
+  const cycleColors = { Monthly:'var(--blue)', Quarterly:'var(--purple)', Yearly:'var(--amber)', 'One-time':'var(--ink3)' };
+  const cycleBgs = { Monthly:'var(--blue-bg)', Quarterly:'var(--purple-bg)', Yearly:'var(--amber-bg)', 'One-time':'var(--surface2)' };
+
+  el.innerHTML = DATA.bills.map((b,i) =>
+    `<div class="bill-row">
+      <span class="bill-name">${b.name}</span>
+      <span style="font-size:0.7rem;color:var(--ink3);">${b.category}</span>
+      <span class="bill-cycle" style="background:${cycleBgs[b.cycle]};color:${cycleColors[b.cycle]};">${b.cycle}</span>
+      <span class="bill-due">Due: ${b.dueDay||'—'}th</span>
+      <span class="bill-amount" style="color:var(--warm);">$${(b.amount||0).toFixed(2)}</span>
+      ${b.notes ? `<span style="font-size:0.68rem;color:var(--ink3);">${b.notes}</span>` : ''}
+      <button class="btn btn-sm btn-danger" onclick="DATA.bills.splice(${i},1);save();" style="padding:3px 8px;">✕</button>
+    </div>`
+  ).join('');
+
+  const monthlyTotal = DATA.bills.reduce((s,b) => {
+    if (b.cycle === 'Monthly') return s + (b.amount||0);
+    if (b.cycle === 'Quarterly') return s + (b.amount||0)/3;
+    if (b.cycle === 'Yearly') return s + (b.amount||0)/12;
+    return s;
+  }, 0);
+  const yearlyTotal = monthlyTotal * 12;
+
+  document.getElementById('billsTotal').innerHTML = `
+    <span>Monthly Total: $${monthlyTotal.toFixed(2)}</span>
+    <span style="color:var(--ink3);">Yearly: $${yearlyTotal.toFixed(0)}</span>
+  `;
+}
+
+// ═══════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════
+function addExpense() {
+  const desc = document.getElementById('expDesc').value.trim();
+  const amount = parseFloat(document.getElementById('expAmount').value) || 0;
+  if (!desc || !amount) { toast('Fill description and amount', 'err'); return; }
+  DATA.expenses.push({
+    date: document.getElementById('expDate').value,
+    desc,
+    amount,
+    category: document.getElementById('expCategory').value
+  });
+  document.getElementById('expDesc').value = '';
+  document.getElementById('expAmount').value = '';
+  save();
+  toast('💸 Expense logged', 'ok');
+}
+
+function renderExpenses() {
+  const month = document.getElementById('expMonth').value;
+  let filtered = DATA.expenses.slice();
+  if (month) filtered = filtered.filter(e => e.date && e.date.startsWith(month));
+  filtered.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+  const total = filtered.reduce((s,e) => s + (e.amount||0), 0);
+  document.getElementById('expMonthTotal').textContent = 'Total: $' + total.toFixed(2);
+
+  const catClasses = { Food:'cat-food', Transport:'cat-transport', Shopping:'cat-shopping', Entertainment:'cat-entertainment', Health:'cat-health', Bills:'cat-bills', Other:'cat-other' };
+
+  const el = document.getElementById('expenseList');
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--ink3);padding:20px;">No expenses this month</div>';
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  filtered.forEach(e => {
+    const d = e.date || 'Unknown';
+    if (!grouped[d]) grouped[d] = [];
+    grouped[d].push(e);
+  });
+
+  el.innerHTML = Object.entries(grouped).map(([date, exps]) => {
+    const dayTotal = exps.reduce((s,e) => s + (e.amount||0), 0);
+    return `<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:2px solid var(--border);margin-bottom:4px;">
+        <span style="font-size:0.75rem;font-weight:600;color:var(--warm);">${formatDate(date)}</span>
+        <span style="font-size:0.75rem;font-weight:700;color:var(--red);">$${dayTotal.toFixed(2)}</span>
+      </div>
+      ${exps.map((e,i) => `<div class="expense-row">
+        <span class="expense-cat ${catClasses[e.category]||'cat-other'}">${e.category}</span>
+        <span style="flex:1;">${e.desc}</span>
+        <span class="expense-amount" style="color:var(--red);">-$${(e.amount||0).toFixed(2)}</span>
+        <button class="btn btn-sm" onclick="deleteExpense('${date}',${i})" style="padding:2px 6px;font-size:0.6rem;color:var(--ink3);">✕</button>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function deleteExpense(date, idx) {
+  const month = document.getElementById('expMonth').value;
+  let filtered = DATA.expenses.filter(e => e.date && e.date.startsWith(month));
+  filtered.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const grouped = {};
+  filtered.forEach(e => { const d = e.date||'Unknown'; if (!grouped[d]) grouped[d] = []; grouped[d].push(e); });
+  const exps = grouped[date];
+  if (exps && exps[idx]) {
+    const target = exps[idx];
+    const globalIdx = DATA.expenses.findIndex(e => e.date === target.date && e.desc === target.desc && e.amount === target.amount);
+    if (globalIdx >= 0) DATA.expenses.splice(globalIdx, 1);
+    save();
+  }
+}
+
+// ═══════════════════════════════════════
+// GOALS & BUCKET LIST
+// ═══════════════════════════════════════
+function addGoal() {
+  const title = document.getElementById('goalTitle').value.trim();
+  if (!title) { toast('Enter a goal', 'err'); return; }
+  DATA.goals.push({
+    title,
+    type: document.getElementById('goalType').value,
+    desc: document.getElementById('goalDesc').value,
+    targetDate: document.getElementById('goalDate').value,
+    progress: parseInt(document.getElementById('goalProgress').value) || 0,
+    createdAt: new Date().toISOString().slice(0,10)
+  });
+  document.getElementById('goalTitle').value = '';
+  document.getElementById('goalDesc').value = '';
+  document.getElementById('goalDate').value = '';
+  document.getElementById('goalProgress').value = '0';
+  save();
+  toast('🎯 Goal added', 'ok');
+}
+
+function filterGoals(type) {
+  goalFilter = type;
+  document.querySelectorAll('[id^="gf-"]').forEach(b => {
+    b.style.fontWeight = '400';
+    b.style.background = 'var(--surface)';
+    b.style.color = 'var(--ink3)';
+    b.style.borderColor = 'var(--border)';
+  });
+  const active = document.getElementById('gf-' + type);
+  if (active) {
+    active.style.fontWeight = '600';
+    active.style.background = 'var(--warm-bg)';
+    active.style.color = 'var(--warm)';
+    active.style.borderColor = 'var(--warm-light)';
+  }
+  renderGoals();
+}
+
+function renderGoals() {
+  let filtered = DATA.goals.slice();
+  if (goalFilter === 'Completed') {
+    filtered = filtered.filter(g => g.progress >= 100);
+  } else if (goalFilter !== 'All') {
+    filtered = filtered.filter(g => g.type === goalFilter && g.progress < 100);
+  }
+
+  const el = document.getElementById('goalsList');
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="card" style="text-align:center;color:var(--ink3);padding:24px;">No goals in this category. Dream big!</div>';
+    return;
+  }
+
+  const typeEmojis = { 'Life Goal':'🎯', 'Bucket List':'🌍', 'This Year':'📅', 'This Month':'🗓️', 'Financial':'💰', 'Experience':'✨' };
+  const typeColors = { 'Life Goal':'var(--warm)', 'Bucket List':'var(--blue)', 'This Year':'var(--green)', 'This Month':'var(--amber)', 'Financial':'var(--purple)', 'Experience':'var(--green)' };
+
+  el.innerHTML = filtered.map((g,i) => {
+    const color = typeColors[g.type] || 'var(--warm)';
+    const done = g.progress >= 100;
+    const globalIdx = DATA.goals.indexOf(g);
+    return `<div class="goal-card" style="${done?'opacity:0.6;':''}border-left:3px solid ${color};">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="goal-title" style="${done?'text-decoration:line-through;':''}">${typeEmojis[g.type]||'🎯'} ${g.title}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" onclick="updateGoalProgress(${globalIdx})">Update</button>
+          <button class="btn btn-sm btn-danger" onclick="DATA.goals.splice(${globalIdx},1);save();" style="padding:3px 8px;">✕</button>
+        </div>
+      </div>
+      ${g.desc ? `<div class="goal-desc">${g.desc}</div>` : ''}
+      <div class="goal-bar"><div class="goal-fill" style="width:${g.progress}%;background:${done?'var(--green)':color};"></div></div>
+      <div class="goal-meta">
+        <span style="font-weight:600;color:${done?'var(--green)':color};">${g.progress}%${done?' ✅ Complete':''}</span>
+        <span>${g.type}</span>
+        ${g.targetDate ? `<span>Target: ${formatDate(g.targetDate)}</span>` : ''}
+        <span>Created: ${formatDate(g.createdAt)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateGoalProgress(idx) {
+  const goal = DATA.goals[idx];
+  if (!goal) return;
+  const val = prompt('Update progress % (0-100):', goal.progress);
+  if (val === null) return;
+  goal.progress = Math.min(100, Math.max(0, parseInt(val) || 0));
+  save();
+  if (goal.progress >= 100) toast('🎉 Goal completed: ' + goal.title, 'ok');
+  else toast('🎯 Progress updated', 'ok');
+}
+
+// ═══════════════════════════════════════
+// TABS & UTILS
+// ═══════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const btn = document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`);
+  if (btn) btn.classList.add('active');
+}
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
