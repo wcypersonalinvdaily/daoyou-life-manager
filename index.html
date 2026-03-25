@@ -330,12 +330,19 @@ let DATA = {
 
 let goalFilter = 'All';
 
-(function init() {
+(async function init() {
   document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-SG', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
   document.getElementById('expDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('expMonth').value = new Date().toISOString().slice(0,7);
 
-  try { const saved = JSON.parse(localStorage.getItem('daoyou_life')); if (saved) DATA = {...DATA, ...saved}; } catch(e) {}
+  try {
+    const ex = await apiFetch('life_getExpenses','GET',{month:new Date().toISOString().slice(0,7)});
+    const budget = await apiFetch('life_getBudget');
+    if (ex && ex.expenses) DATA.expenses = ex.expenses.map(x => ({ date:x.Date, desc:x.Desc, amount:Number(x.Amount||0), category:x.Category }));
+    if (budget && budget.budget) DATA.goals = [];
+  } catch(e) {
+    try { const saved = JSON.parse(localStorage.getItem('daoyou_life')); if (saved) DATA = {...DATA, ...saved}; } catch(_) {}
+  }
 
   renderAll();
 })();
