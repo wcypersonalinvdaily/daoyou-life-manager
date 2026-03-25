@@ -317,6 +317,8 @@ body { background:var(--bg); font-family:'Sora',sans-serif; color:var(--ink); mi
 <div class="toast" id="toast"></div>
 
 <script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbw5H1tcIL8kWAn1RMwFzyA5ISz51XfhaIhO6cCOW-Zgl4ZxqTjRsjBWbe6YVLcp5FFDag/exec';
+async function apiFetch(action, method='GET', body=null){ const url = method==='GET' ? `${API_URL}?${new URLSearchParams({action,...(body||{})}).toString()}` : API_URL; const res = await fetch(url,{method,headers:method==='GET'?{}:{'Content-Type':'application/json'},body:method==='GET'?undefined:JSON.stringify({action,...(body||{})})}); return res.json(); }
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
@@ -496,10 +498,11 @@ function renderBills() {
 // ═══════════════════════════════════════
 // EXPENSES
 // ═══════════════════════════════════════
-function addExpense() {
+async function addExpense() {
   const desc = document.getElementById('expDesc').value.trim();
   const amount = parseFloat(document.getElementById('expAmount').value) || 0;
   if (!desc || !amount) { toast('Fill description and amount', 'err'); return; }
+  await apiFetch('life_addExpense','POST',{date: document.getElementById('expDate').value, desc, amount, category: document.getElementById('expCategory').value});
   DATA.expenses.push({
     date: document.getElementById('expDate').value,
     desc,
@@ -572,9 +575,10 @@ function deleteExpense(date, idx) {
 // ═══════════════════════════════════════
 // GOALS & BUCKET LIST
 // ═══════════════════════════════════════
-function addGoal() {
+async function addGoal() {
   const title = document.getElementById('goalTitle').value.trim();
   if (!title) { toast('Enter a goal', 'err'); return; }
+  await apiFetch('life_addGoal','POST',{title, type: document.getElementById('goalType').value, desc: document.getElementById('goalDesc').value, targetDate: document.getElementById('goalDate').value, progress: parseInt(document.getElementById('goalProgress').value) || 0});
   DATA.goals.push({
     title,
     type: document.getElementById('goalType').value,
